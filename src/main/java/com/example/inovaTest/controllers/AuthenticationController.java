@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -54,6 +55,10 @@ public class AuthenticationController {
     private UserRepository userRepository;
     @Autowired
     private PasswordResetTokenRepository resetTokenRepository;
+    @Value("${frontend.url}")
+    private String frontendUrl;
+    @Value("${backend.url}")
+    private String backendUrl;
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data){
@@ -87,7 +92,7 @@ public class AuthenticationController {
 
 
         System.out.println("Preparando para enviar e-mail de verificação para: " + newUser.getEmail());
-        String verificationUrl = "http://31.97.130.19:8080/auth/verify?token=" + token;
+        String verificationUrl = backendUrl+"/auth/verify?token=" + token;
 
         // HTML formatado para o e-mail
         String htmlContent = """
@@ -137,7 +142,7 @@ public class AuthenticationController {
 
         tokenRepository.delete(verificationToken);
 
-        return ResponseEntity.ok("E-mail verificado com sucesso. http://31.97.130.19:4200/auth/login");
+        return ResponseEntity.ok("E-mail verificado com sucesso. " + frontendUrl + "/auth/login");
     }
 
 
