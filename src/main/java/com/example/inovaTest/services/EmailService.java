@@ -6,6 +6,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -43,5 +44,13 @@ public class EmailService {
         // Substitui os placeholders
         return htmlContent.replace("${username}", username)
                          .replace("${verificationUrl}", verificationUrl);
+    }
+     public String loadResetPasswordTemplate(String username, String resetLink) throws IOException {
+        ClassPathResource resource = new ClassPathResource("templates/email/reset-password.html");
+        String htmlContent = new String(Files.readAllBytes(Path.of(resource.getURI())));
+
+        return htmlContent.replace("${username}", username)
+                         .replace("${resetLink}", resetLink)
+                         .replace("${oceanBackgroundUrl}", "https://example.com/ocean-background.jpg");
     }
 }

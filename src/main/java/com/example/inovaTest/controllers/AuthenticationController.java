@@ -138,7 +138,7 @@ public class AuthenticationController {
 
 
 
-   @PostMapping("/forgot-password")
+    @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody @Valid ForgotPasswordDTO dto) {
         UserModel user = (UserModel) userRepository.findByEmail(dto.email());
         if (user == null) {
@@ -158,25 +158,19 @@ public class AuthenticationController {
             PasswordResetToken resetToken = new PasswordResetToken(token, user);
             resetTokenRepository.save(resetToken);
 
-            String resetLink = frontendUrl+"/auth/reset-password?token=" + token;
-            String html = """
-                <html>
-                <body>
-                    <h3>Redefinição de Senha</h3>
-                    <p>Clique no link para redefinir sua senha:</p>
-                    <a href="%s">Redefinir Senha</a>
-                    <p>Este link expira em 24 horas.</p>
-                </body>
-                </html>
-            """.formatted(resetLink);
+            String resetLink = frontendUrl + "/auth/reset-password?token=" + token;
+            String htmlContent = emailService.loadResetPasswordTemplate(user.getLogin(), resetLink);
             
-            emailService.sendEmail(user.getEmail(), "Redefinição de Senha", html);
+            emailService.sendEmail(user.getEmail(), "Redefinição de Senha", htmlContent);
             return ResponseEntity.ok("E-mail enviado.");
             
         } catch (MessagingException e) {
             System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Erro ao enviar e-mail de redefinição de senha: " + e.getMessage());
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro ao carregar o template de redefinição de senha: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Erro ao processar solicitação de redefinição de senha: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
