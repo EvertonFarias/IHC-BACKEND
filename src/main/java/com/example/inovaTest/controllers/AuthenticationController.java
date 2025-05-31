@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 
 import java.util.Date;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -71,53 +72,42 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid RegisterDTO data){
+    public ResponseEntity<?> register(@RequestBody @Valid RegisterDTO data) {
         try {
-        UserModel newUser = authService.registerUser(data);
-        UserResponseDTO responseDTO = new UserResponseDTO(
-            newUser.getId(),
-            newUser.getLogin(),
-            newUser.getEmail(),
-            newUser.getRole(),
-            newUser.isVerifiedEmail(),
-            newUser.getGender(),
-            newUser.getDateOfBirth(),
-            newUser.isEnabled(),
-            newUser.getProfilePicture()
+            UserModel newUser = authService.registerUser(data);
+            UserResponseDTO responseDTO = new UserResponseDTO(
+                newUser.getId(),
+                newUser.getLogin(),
+                newUser.getEmail(),
+                newUser.getRole(),
+                newUser.isVerifiedEmail(),
+                newUser.getGender(),
+                newUser.getDateOfBirth(),
+                newUser.isEnabled(),
+                newUser.getProfilePicture()
             );
 
-        String token = UUID.randomUUID().toString();
-        EmailVerificationToken verificationToken = new EmailVerificationToken(token, newUser);
-        tokenRepository.save(verificationToken);
+            String token = UUID.randomUUID().toString();
+            EmailVerificationToken verificationToken = new EmailVerificationToken(token, newUser);
+            tokenRepository.save(verificationToken);
 
+            System.out.println("Preparando para enviar e-mail de verificação para: " + newUser.getEmail());
+            String verificationUrl = backendUrl + "/auth/verify?token=" + token;
 
-        System.out.println("Preparando para enviar e-mail de verificação para: " + newUser.getEmail());
-        String verificationUrl = backendUrl+"/auth/verify?token=" + token;
+            
+            String htmlContent = emailService.loadEmailTemplateVerification(newUser.getLogin(), verificationUrl);
+            System.out.println("Template de e-mail carregado com sucesso. Enviando e-mail...");
+            // Envia o e-mail
+            emailService.sendEmail(newUser.getEmail(), "Verificação de E-mail", htmlContent);
+            System.out.println("E-mail de verificação enviado com sucesso para: " + newUser.getEmail());
 
-        // HTML formatado para o e-mail
-        String htmlContent = """
-            <html>
-            <body style="font-family: Arial, sans-serif; background-color: #f2f2f2; padding: 20px;">
-                <div style="max-width: 600px; margin: auto; background-color: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-                    <h2 style="color: #333;">Verifique seu e-mail</h2>
-                    <p>Olá, <strong>%s</strong>!</p>
-                    <p>Obrigado por se registrar na <strong>CalangoSocial</strong>. Clique no botão abaixo para verificar seu e-mail:</p>
-                    <a href="%s" style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 20px; border-radius: 5px; text-decoration: none;">Verificar E-mail</a>
-                    <p style="margin-top: 20px; font-size: 12px; color: #888;">Se você não se registrou, apenas ignore este e-mail.</p>
-                </div>
-            </body>
-            </html>
-        """.formatted(newUser.getLogin(), verificationUrl);
-
-       
-        emailService.sendEmail(newUser.getEmail(), "Verificação de E-mail", htmlContent);
-
-        
-        return ResponseEntity.ok(responseDTO); 
+            return ResponseEntity.ok(responseDTO);
         } catch (ConflictException e) {
-            String errorMessage = e.getMessage(); 
+            String errorMessage = e.getMessage();
             return ResponseEntity.badRequest().body(errorMessage);
-        } catch (Exception e) { 
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao carregar o template de e-mail.");
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing the request.");
         }
     }
@@ -168,7 +158,7 @@ public class AuthenticationController {
             PasswordResetToken resetToken = new PasswordResetToken(token, user);
             resetTokenRepository.save(resetToken);
 
-            String resetLink = "http://31.97.130.19:4200/auth/reset-password?token=" + token;
+            String resetLink = frontendUrl+"/auth/reset-password?token=" + token;
             String html = """
                 <html>
                 <body>

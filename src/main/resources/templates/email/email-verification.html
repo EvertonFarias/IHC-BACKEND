@@ -1,0 +1,95 @@
+<section class="section-main">
+  <div class="reset-password-container">
+    <h2>
+      <span class="material-icons">lock_reset</span>
+      Redefinir Senha
+    </h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="input-group">
+        <label for="password">
+          <span class="material-icons label-icon">lock</span>
+          Nova senha
+        </label>
+        <div class="input-wrapper" [class.error]="form.get('password')?.invalid && form.get('password')?.touched">
+          <span class="material-icons input-icon">lock</span>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="Nova senha"
+            class="form-control" />
+        </div>
+        <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched" class="error-message">
+          <span class="material-icons error-icon">error</span>
+          <span *ngIf="form.get('password')?.errors?.['required']">A senha é obrigatória</span>
+          <span *ngIf="form.get('password')?.errors?.['minlength']">A senha deve ter pelo menos 6 caracteres</span>
+          <div *ngIf="form.get('password')?.errors?.['passwordStrength'] as errors" class="error-details">
+            <div *ngIf="errors.lowercase" class="error-message">
+              <span class="material-icons error-icon">error</span>
+              Deve conter pelo menos uma letra minúscula
+            </div>
+            <div *ngIf="errors.uppercase" class="error-message">
+              <span class="material-icons error-icon">error</span>
+              Deve conter pelo menos uma letra maiúscula
+            </div>
+            <div *ngIf="errors.number" class="error-message">
+              <span class="material-icons error-icon">error</span>
+              Deve conter pelo menos um número
+            </div>
+            <div *ngIf="errors.special" class="error-message">
+              <span class="material-icons error-icon">error</span>
+              Deve conter pelo menos um caractere especial (@$!%*?&)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="confirmPassword">
+          <span class="material-icons label-icon">lock</span>
+          Confirme a nova senha
+        </label>
+        <div class="input-wrapper" [class.error]="form.get('confirmPassword')?.invalid && form.get('confirmPassword')?.touched">
+          <span class="material-icons input-icon">lock</span>
+          <input
+            type="password"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            placeholder="Confirme a nova senha"
+            class="form-control" />
+        </div>
+        <div *ngIf="form.get('confirmPassword')?.invalid && form.get('confirmPassword')?.touched" class="error-message">
+          <span class="material-icons error-icon">error</span>
+          A confirmação de senha é obrigatória
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="form.invalid || isSubmitting"
+        class="btn-primary">
+        <span class="material-icons button-icon" [class.rotating]="isSubmitting">
+          {{ isSubmitting ? 'hourglass_empty' : 'save' }}
+        </span>
+        {{ isSubmitting ? 'Processando...' : 'Redefinir Senha' }}
+      </button>
+    </form>
+
+    <div *ngIf="success" class="alert success">
+      <span class="material-icons">check_circle</span>
+      {{ success }}
+    </div>
+    <div *ngIf="error" class="alert error">
+      <span class="material-icons">error</span>
+      {{ error }}
+    </div>
+
+    <p>
+      <a class="text-link" routerLink="/auth/login">
+        <span class="material-icons link-icon">arrow_back</span>
+        <span class="link-text">Voltar ao Login</span>
+      </a>
+    </p>
+  </div>
+</section>
