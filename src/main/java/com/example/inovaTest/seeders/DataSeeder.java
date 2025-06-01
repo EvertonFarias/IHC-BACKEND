@@ -58,7 +58,7 @@ public class DataSeeder implements ApplicationListener<ApplicationReadyEvent> {
         UserModel admin = new UserModel();
         admin.setLogin("admin");
         admin.setPassword(passwordEncoder.encode("admin12345"));
-        admin.setEmail("admin@calangosocial.com");
+        admin.setEmail("admin@duelshop.com");
         admin.setRole(UserRole.ADMIN);
         admin.setEnabled(true);
         admin.setDateOfBirth(LocalDate.of(1985, 3, 15));
@@ -73,7 +73,7 @@ public class DataSeeder implements ApplicationListener<ApplicationReadyEvent> {
         UserModel user = new UserModel();
         user.setLogin("user");
         user.setPassword(passwordEncoder.encode("user12345"));
-        user.setEmail("user@calangosocial.com");
+        user.setEmail("user@duelshop.com");
         user.setRole(UserRole.USER);
         user.setEnabled(true);
         user.setDateOfBirth(LocalDate.of(1995, 7, 20));
